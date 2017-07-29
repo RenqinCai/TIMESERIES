@@ -84,15 +84,14 @@ The figure \ref{fig:browsingsequence} visualizes the generation of the browsing 
 
 We use $u_i$ to represent the user's browsing preference vector and $v$ to represent the item's attribute vector. $V$ represents the whole set of items.  
 
-We believe attributes of browsed items can shape both user's browsing preferences and user's purchasing preferences over time. $\alpha$ represents the shaping pattern adopted by user $u$. Shaping patterns $\{\alpha_1, ..., \alpha_m, ..., \alpha_M\}$ are shared among users. Thus, the browsing preference of the user $u$ at time $t$ can be represented as, 
+We believe attributes of browsed items can shape both user's browsing preferences and user's purchasing preferences over time. $\alpha$ represents the shaping pattern adopted by user $u$. Shaping patterns $\{\alpha_1, ..., \alpha_k, ..., \alpha_K\}$ are shared among users. In addition, we believe that not all browsed items will influence the users' preferences, so we use a latent variable $z$ to distinguish whether the browsed item affects the user's preference. When $z=1$, the browsed item affects the user's preference. When $z=0$, the browsed item does not affect the user's preference. 
+% \begin{align}
+% \label{user_preference_vec}
+% \vec{u}_i(t) = \vec{u}_i(0)+\sum_{t_j<t} (\vec{\alpha}_{t_j}\odot\vec{v}_{t_j}) Kernel(t,t_j)
+% \end{align}
+% where the $Kernel(t, t_j)$ is a time decaying function, maybe exponential function, and $\odot$ means the element-wise product of two vectors. ${\vec{\alpha}}_{t_j}\odot\vec{v}_{t_j}$ captures how the browsed items change the user's preference dimension-wise. Browsing an item may affect a proportion of dimensions of users' preferences.  
 
-\begin{align}
-\label{user_preference_vec}
-\vec{u}_i(t) = \vec{u}_i(0)+\sum_{t_j<t} (\vec{\alpha}_{t_j}\odot\vec{v}_{t_j}) Kernel(t,t_j)
-\end{align}
-where the $Kernel(t, t_j)$ is a time decaying function, maybe exponential function, and $\odot$ means the element-wise product of two vectors. ${\vec{\alpha}}_{t_j}\odot\vec{v}_{t_j}$ captures how the browsed items change the user's preference dimension-wise. Browsing an item may affect a proportion of dimensions of users' preferences.  
-
-In addition, we believe that not all browsed items will influence the users' preferences, so we use a latent variable $z$ to distinguish whether the browsed item affects the user's preference. When $z=1$, the browsed item affects the user's preference. When $z=0$, the browsed item does not affect the user's preference. So the Eq.\ref{user_preference_vec} transforms into the following format,
+So the Eq.\ref{user_preference_vec} transforms into the following format,
 \begin{align}
 \label{user_preference_vec_z}
 \vec{u}_i(t) = (1-z_t)\vec{u}_i(t-1)+z_t\big\{ \vec{u}_i(0)+\sum_{t_j<t} (\vec{\alpha}_{t_j}\odot\vec{v}_{t_j}) exp\big(-\gamma_1 (t-t_j)\big)\big\}
@@ -118,7 +117,7 @@ The generation of $t$ is modeled via a Hawkes Process:
 %     \lambda_{\alpha_m}(t) = \lambda_{\alpha_m}(0)+\sum_{t_j<t}A_{\alpha_{t_j}\alpha_{m}} Kernel(t,t_j)
 % \end{align*}
 
-% We use a latent vector $u$ to represent a user and a latent vector $x$ to represent an item. The vector $u(t)$ means the user's preferences (aspect weights) at time $t$. On the other hand, the vector $x_t$ means the item $x$'s attributes (aspect qualities), which is browsed by the user at time $t$. We believe the attributes of browsed items can shape the user's preferences over time and how the attributes of browsed items shape the user’s preferences can be categorized into groups shared by users. We use $\alpha_{t}$ to represent the shaping pattern at time t. Thus, at time $t$, the preference of a user $u$ can be represented as,
+% We use a latent vector $u$ to represent a user and a latent vector $x$ to represent an item. The vector $u(t)$ means the user's preferences (aspect weights) at time $t$. On the other hand, the vector $x_t$ means the item $x$'s attributes (aspect qualities), which is browsed by the user at time $t$. We believe the attributes of browsed items can shape the user's preferences over time and how the attributes of browsed items shape the user?s preferences can be categorized into groups shared by users. We use $\alpha_{t}$ to represent the shaping pattern at time t. Thus, at time $t$, the preference of a user $u$ can be represented as,
 
 % \begin{align}
 % u(t) = u_0+ \sum_{t_j<t} \alpha^{t_j}x_{t_j}
@@ -136,10 +135,10 @@ where $v_t$ means the item attributes vector browsed at time $t$.
 
 The whole generative process of the sequence data is: \\
 for each sequence of a user 
-\begin{enumerate} \denselist
+\begin{enumerate} 
 \item sample $\theta\sim Beta(a, b)$
 \item for each action in the sequence
-    \begin{enumerate}\denselist
+    \begin{enumerate}
     \item sample the on/off variable $z \sim \theta$
     \item sample the timestamp $t \sim \lambda(t)$
     \item draw the user preference vector $\vec{u}_i(t)$ according to  Eq.\ref{user_preference_vec_z}
@@ -151,7 +150,7 @@ for each sequence of a user
 %     \lambda_s(t) = u_s(t)^Tx
 % \end{align*}
 
-If we think of whether browsing an item or not at each timestamp as a binary classification problem, our setting is that we use one set of parameters of logistic regression to predict each browsing behavior and the parameters are linked via the Hawkes Process as the equation 1 shows. Our current setting of logistic regression, which we call “Hawkes Process Logistic Regression”, lies between two extreme settings of logistic regression. One extreme is using one set of parameters of logistic regression to predict the browsing behaviors of the whole sequence. The other extreme is for each browsing behavior using one set of parameters of logistic regression to predict. To verify whether our intermediate setting can improve the accuracy, we can first verify another simpler intermediate setting that we divide a sequence into multiple groups of browsing behaviors and for each group we use a logistic regression to predict, which we call “Group Logistic Regression”. If “Group Logistic Regression” can work better than two extremes, we may expect our current setting can perform best among these models. Since how to divide the group matters a lot in “Group Logistic Regression” and it is difficult to achieve an ideal division, “Hawkes Process Logistic Regression” which do not need to divide the sequence into groups may outperform “Group Logistic Regression”. As a result, “Hawkes Process Logistic Regression” may outperform other models.
+If we think of whether browsing an item or not at each timestamp as a binary classification problem, our setting is that we use one set of parameters of logistic regression to predict each browsing behavior and the parameters are linked via the Hawkes Process as the equation 1 shows. Our current setting of logistic regression, which we call ?Hawkes Process Logistic Regression?, lies between two extreme settings of logistic regression. One extreme is using one set of parameters of logistic regression to predict the browsing behaviors of the whole sequence. The other extreme is for each browsing behavior using one set of parameters of logistic regression to predict. To verify whether our intermediate setting can improve the accuracy, we can first verify another simpler intermediate setting that we divide a sequence into multiple groups of browsing behaviors and for each group we use a logistic regression to predict, which we call ?Group Logistic Regression?. If ?Group Logistic Regression? can work better than two extremes, we may expect our current setting can perform best among these models. Since how to divide the group matters a lot in ?Group Logistic Regression? and it is difficult to achieve an ideal division, ?Hawkes Process Logistic Regression? which do not need to divide the sequence into groups may outperform ?Group Logistic Regression?. As a result, ?Hawkes Process Logistic Regression? may outperform other models.
 
 
 % $\sum_{t_j<t}$ captures the sequential influence from previous events happening at $\{t_j<t\}$ on the current browsing behavior. And for time $t_j$, the corresponding accepting pattern is $s_{t_j}$, whose accepting rate is $\alpha_u^{s_{t_j}}\sim Gaussian(\mu, \sigma)$. 
@@ -221,33 +220,33 @@ If we think of whether browsing an item or not at each timestamp as a binary cla
 % E_q[\vec{u}_i(t)^T\vec{v}_t-\log \sum_v^V \exp(\vec{u}_i(t)^T\vec{v})]+\sum^{u_n}_{i=1}\sum_{j=1}^{|S_{u_i}|}E_q[\log \lambda^*_{u_i}(t_j)]-\sum^{u_n}_{i=1}E_q[\int_{0}^T\lambda^*_{u_i}(t)dt]
 % \end{align*} 
 
-we estimate the probability of drawing $mth$ $\alpha$ for user $u$ is: 
-\begin{align}
-p(z_u=k|S_{u_1}, ..., S_{u_n}, T_{u_1}, ..., T_{u_n}) & = \frac{p(z_u=k,S_{u_1}, ..., S_{u_n}, T_{u_1}, ..., T_{u_n})}{p(S_{u_1}, ..., S_{u_n}, T_{u_1}, ..., T_{u_n})} \\
-& = \frac{L(u)}{\sum_k L(u)} \\
-& = \frac{\prod^{u_n}_{i=1}\prod^{S_{u_i}}_{v_t}\Big\{\frac{\exp(u_b(t)^Tv_t)}{\sum_v^{V} \exp(u_b(t)^Tv)}  \Big\}}{\sum_k^{K}\prod^{u_n}_{i=1}\prod^{S_{u_i}}_{v_t}\Big\{\frac{\exp(u_b(t)^Tv_t)}{\sum_v^V \exp(u_b(t)^Tv)} \Big\}}
-\end{align}
+% we estimate the probability of drawing $mth$ $\alpha$ for user $u$ is: 
+% \begin{align}
+% p(z_u=k|S_{u_1}, ..., S_{u_n}, T_{u_1}, ..., T_{u_n}) & = \frac{p(z_u=k,S_{u_1}, ..., S_{u_n}, T_{u_1}, ..., T_{u_n})}{p(S_{u_1}, ..., S_{u_n}, T_{u_1}, ..., T_{u_n})} \\
+% & = \frac{L(u)}{\sum_k L(u)} \\
+% & = \frac{\prod^{u_n}_{i=1}\prod^{S_{u_i}}_{v_t}\Big\{\frac{\exp(u_b(t)^Tv_t)}{\sum_v^{V} \exp(u_b(t)^Tv)}  \Big\}}{\sum_k^{K}\prod^{u_n}_{i=1}\prod^{S_{u_i}}_{v_t}\Big\{\frac{\exp(u_b(t)^Tv_t)}{\sum_v^V \exp(u_b(t)^Tv)} \Big\}}
+% \end{align}
 
 % We estimate the probability of drawing $l$
 
-\subsection{M-step}
-M-step, we estimate $\alpha$s.
-To estimate $\alpha$s, we first compute the log complete data likelihood.
+% \subsection{M-step}
+% M-step, we estimate $\alpha$s.
+% To estimate $\alpha$s, we first compute the log complete data likelihood.
 
-\begin{align*}
-L &= \sum_u \log p(z_u=k,S_{u_1}, ..., S_{u_n}) = \sum_u \sum^{u_n}_{i} \sum^{S_{u_i}}_{v_t} \Big\{\log \exp(u_b(t)^Tv_t)-\log \sum_v^V \exp(u_b(t)^Tv)\Big\} \\
-& = \sum_u \sum^{u_n}_{i} \sum^{S_{u_i}}_{v_t} \Big\{ u_b(t)^Tv_t-\log \sum_v^V \exp(u_b(t)^Tv)\Big\} \\
-& = \sum_u \sum^{u_n}_{i} \sum^{S_{u_i}}_{v_t}\Big\{ u_b(0)^Tv_t+\sum_{t_j<t}\sum^{K}_k 1(z^u=k)\alpha_{t_j}v_{t_j}^Tv_t Kernel(t, t_j)-\\
- &\log \sum_v^V \exp\Big(u_b(0)^Tv+\sum_{t_j<t}\sum^K_k 1(z^u=k)\alpha_{t_j}v_{t_j}^Tv Kernel(t,t_j)\Big)\Big\}
-\end{align*}
+% \begin{align*}
+% L &= \sum_u \log p(z_u=k,S_{u_1}, ..., S_{u_n}) = \sum_u \sum^{u_n}_{i} \sum^{S_{u_i}}_{v_t} \Big\{\log \exp(u_b(t)^Tv_t)-\log \sum_v^V \exp(u_b(t)^Tv)\Big\} \\
+% & = \sum_u \sum^{u_n}_{i} \sum^{S_{u_i}}_{v_t} \Big\{ u_b(t)^Tv_t-\log \sum_v^V \exp(u_b(t)^Tv)\Big\} \\
+% & = \sum_u \sum^{u_n}_{i} \sum^{S_{u_i}}_{v_t}\Big\{ u_b(0)^Tv_t+\sum_{t_j<t}\sum^{K}_k 1(z^u=k)\alpha_{t_j}v_{t_j}^Tv_t Kernel(t, t_j)-\\
+%  &\log \sum_v^V \exp\Big(u_b(0)^Tv+\sum_{t_j<t}\sum^K_k 1(z^u=k)\alpha_{t_j}v_{t_j}^Tv Kernel(t,t_j)\Big)\Big\}
+% \end{align*}
 
-Taking derivative of $L$ with respect to $\alpha_k$, 
-\begin{align}
-\frac{\partial L}{\partial \alpha_k} &= \sum_u \sum^{u_n}_{i} \sum^{S_{u_i}}_{v_t}\Big\{\sum_{t_j<t} p(z^u=k|S_{u_1}, ..., S_{u_n})v_{t_j}^Tv_tKernel(t, t_j)-\\
-&\sum_v^V\Big(\frac{\exp\big( \boldsymbol{u_b(0)^Tv+\sum_{t_j<t}\sum_k^K \alpha_k p(z^u=k|S_{u_1}, ..., S_{u_n})v_{t_j}^T v Kernel(t, t_j)}\big )}{\sum_v^V \exp\big(\boldsymbol{u_b(0)^Tv+\sum_{t_j<t} \sum_k^K \alpha_k p(z^u=k|S_{u_1}, ..., S_{u_n})v_{t_j}^Tv Kernel(t, t_j)}\big)} \\
-& \times \sum_{t_j<t}p(z^u=k|S_{u_1}, ..., S_{u_n})v_{t_j}^T v Kernel(t, t_j) \Big)
-\Big\}
-\end{align}
+% Taking derivative of $L$ with respect to $\alpha_k$, 
+% \begin{align}
+% \frac{\partial L}{\partial \alpha_k} &= \sum_u \sum^{u_n}_{i} \sum^{S_{u_i}}_{v_t}\Big\{\sum_{t_j<t} p(z^u=k|S_{u_1}, ..., S_{u_n})v_{t_j}^Tv_tKernel(t, t_j)-\\
+% &\sum_v^V\Big(\frac{\exp\big( \boldsymbol{u_b(0)^Tv+\sum_{t_j<t}\sum_k^K \alpha_k p(z^u=k|S_{u_1}, ..., S_{u_n})v_{t_j}^T v Kernel(t, t_j)}\big )}{\sum_v^V \exp\big(\boldsymbol{u_b(0)^Tv+\sum_{t_j<t} \sum_k^K \alpha_k p(z^u=k|S_{u_1}, ..., S_{u_n})v_{t_j}^Tv Kernel(t, t_j)}\big)} \\
+% & \times \sum_{t_j<t}p(z^u=k|S_{u_1}, ..., S_{u_n})v_{t_j}^T v Kernel(t, t_j) \Big)
+% \Big\}
+% \end{align}
 
 \section{Baselines}
 
@@ -284,5 +283,65 @@ y_j &= y_j+\alpha(2*e_{ui}*v*|R(u)|^{-\frac{1}{2}}-\beta_y y_j)
 \end{align*}
 
 
+\textbf{Dynamic Logistic Regression}
 
+This model captures the dynamic changes of users' preferences vectors, but does not consider the time information as a variable. So the user's preference vector is defined as followsing, 
+\begin{align}
+\label{user_preference_vec}
+\vec{u}_i(t) = \vec{u}_i(0)+\sum_{t_j<t} (\vec{\alpha}_{t_j}\odot\vec{v}_{t_j}) Kernel(t,t_j)
+\end{align}
+
+Given the current user's browsing preferences $u_i(t)$ and items' attributes, the probability of browsing the item $v$ at time $t$ is
+\begin{align}\label{itemProbability}
+p(v_t) = \frac{exp(\vec{u}_i(t)^T\vec{v}_t)}{\sum^V_v exp(\vec{u}_i(t)^T\vec{v})}
+\end{align}
+where $v_t$ means the item attributes vector browsed at time $t$. 
+
+The parameters of this model is $\alpha$. We assume $\alpha$ is $M$ dimensions. The cluster memberships $z$ of $\alpha$ are latent variables. To infer the cluster membership $z$ and estimate the parameters $\alpha$, we utilize EM algorithm. 
+
+In E-step, we estimate the probability of drawing $kth$ $\alpha$ for user $u$ is: 
+\begin{align}
+p(z_u=k|S_{u_1}, ..., S_{u_n}, T_{u_1}, ..., T_{u_n}) & = \frac{p(z_u=k,S_{u_1}, ..., S_{u_n}, T_{u_1}, ..., T_{u_n})}{p(S_{u_1}, ..., S_{u_n}, T_{u_1}, ..., T_{u_n})} \\
+& = \frac{L(u)}{\sum_k L(u)} \\
+& = \frac{\prod^{u_n}_{i=1}\prod^{S_{u_i}}_{v_t}\Big\{\frac{\exp(u_b(t)^Tv_t)}{\sum_v^{V} \exp(u_b(t)^Tv)}  \Big\}}{\sum_k^{K}\prod^{u_n}_{i=1}\prod^{S_{u_i}}_{v_t}\Big\{\frac{\exp(u_b(t)^Tv_t)}{\sum_v^V \exp(u_b(t)^Tv)} \Big\}}
+\end{align}
+
+In M-step, 
+To estimate $\alpha$s, we first compute the log complete data likelihood.
+
+\begin{align*}
+L &= \sum_u \log p(z_u=k,S_{u_1}, ..., S_{u_n}) = \sum_u \sum^{u_n}_{i} \sum^{S_{u_i}}_{v_t} \Big\{\log \exp(u_b(t)^Tv_t)-\log \sum_v^V \exp(u_b(t)^Tv)\Big\} \\
+& = \sum_u \sum^{u_n}_{i} \sum^{S_{u_i}}_{v_t} \Big\{ u_b(t)^Tv_t-\log \sum_v^V \exp(u_b(t)^Tv)\Big\} \\
+& = \sum_u \sum^{u_n}_{i} \sum^{S_{u_i}}_{v_t}\Big\{ u_b(0)^Tv_t+\sum_{t_j<t}\sum^{K}_k 1(z^u=k)(\alpha_{t_j}\odot v_{t_j})^Tv_t Kernel(t, t_j)-\\
+ &\log \sum_v^V \exp\Big(u_b(0)^Tv+\sum_{t_j<t}\sum^K_k 1(z^u=k)(\alpha_{t_j}\odot v_{t_j})^Tv Kernel(t,t_j)\Big)\Big\}
+\end{align*}
+
+the update equation of $\alpha$ is 
+\begin{align}
+\frac{\partial L}{\partial \alpha_{km}} &= \sum_u \sum^{u_n}_{i} \sum^{S_{u_i}}_{v_t}\Big\{\sum_{t_j<t} p(z^u=k|S_{u_1}, ..., S_{u_n})v_{t_jm}v_{tm}Kernel(t, t_j)-\\
+&\sum_v^V\Big(\frac{\exp\big( \boldsymbol{u_b(0)^Tv+\sum_{t_j<t}\sum_k^K \alpha_{km} p(z^u=k|S_{u_1}, ..., S_{u_n})v_{t_jm}v_{m} Kernel(t, t_j)}\big )}{\sum_v^V \exp\big(\boldsymbol{u_b(0)^Tv+\sum_{t_j<t} \sum_k^K \alpha_{km} p(z^u=k|S_{u_1}, ..., S_{u_n})v_{t_jm}v_{m} Kernel(t, t_j)}\big)} \\
+& \times \sum_{t_j<t}p(z^u=k|S_{u_1}, ..., S_{u_n})v_{t_jm}v_{m} Kernel(t, t_j) \Big)
+\Big\}
+\end{align}
+where $Kernel(t, t_j)=exp\big(-\gamma_1 (t-t_j)\big)$
+
+
+\newpage
+
+\begin{align*}
+L &= \sum_u \log p(z_u=k,S_{u_1}, ..., S_{u_n})  \\
+& = \sum_u \sum^{u_n}_{i} \sum^{S_{u_i}}_{v_t} \Big\{ \log \frac{\exp(u_b(t)^Tv_t)}{\sum_v^V \exp(u_b(t)^Tv)} \Big\} \\
+& = \sum_u \sum^{u_n}_{i} \sum^{S_{u_i}}_{v_t} \Big\{\log \frac{1}{1+\exp(-u_b(t)^Tv_t)} + \sum_{v,v\neq v_t}^V \log\frac{1}{1+\exp(u_b(t)^Tv)} \Big\} 
+\end{align*}
+
+\begin{align*}
+\Big\{ \log \frac{\exp(u_b(t)^Tv_t)}{\sum_v^V \exp(u_b(t)^Tv)} \Big\} \\
+\end{align*}
+\begin{align*}
+\Big\{\log \frac{1}{1+\exp(-u_b(t)^Tv_t)} + \sum_{v,v\neq v_t}^V \log\frac{1}{1+\exp(u_b(t)^Tv)} \Big\} 
+\end{align*}
+
+\begin{align*}
+\Big\{\log \frac{1}{1+\exp(-u_b(t)^Tv_t)} + \sum_{m, m\neq v_t}^M  \log\frac{1}{1+\exp(u_b(t)^Tm)} \Big\} 
+\end{align*}
 \end{document}
